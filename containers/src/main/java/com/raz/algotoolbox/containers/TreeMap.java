@@ -1,6 +1,6 @@
 package com.raz.algotoolbox.containers;
 
-import com.raz.algotoolbox.datatypes.RedBlackTree;
+import com.raz.algotoolbox.datatypes.trees.RedBlackTree;
 
 import java.util.*;
 import java.util.function.BiConsumer;

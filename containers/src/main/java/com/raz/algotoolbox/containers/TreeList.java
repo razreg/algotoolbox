@@ -1,6 +1,6 @@
 package com.raz.algotoolbox.containers;
 
-import com.raz.algotoolbox.datatypes.RankedRedBlackTree;
+import com.raz.algotoolbox.datatypes.trees.RankedRedBlackTree;
 import com.raz.algotoolbox.internal.NotNull;
 
 import java.util.*;

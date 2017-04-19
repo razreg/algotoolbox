@@ -1,4 +1,4 @@
-package com.raz.algotoolbox.datatypes;
+package com.raz.algotoolbox.datatypes.trees;
 
 public class RankedRedBlackTree<K extends Comparable<K>, V> extends RedBlackTree<K, V> {
 

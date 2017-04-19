@@ -1,4 +1,4 @@
-package com.raz.algotoolbox.datatypes;
+package com.raz.algotoolbox.datatypes.trees;
 
 import org.junit.Test;
 
