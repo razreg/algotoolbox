@@ -22,17 +22,7 @@ public class LinearProbingHashTable<K, V> {
 	private static final String BAD_HASH = "The table is not full but the hash function did not yield an available position";
 
 	private Entry<K, V>[] entries;
-	// can use the slightly less optimized lambda: (k, i, c) -> key == null ? 0 : (key.hashCode() + i) % c
-	private ProbingHashFunction<K> probingHashFunction = new ProbingHashFunction<K>() {
-		private int hash;
-		@Override
-		public Integer apply(K key, Integer offset, Integer capacity) {
-			if (hash == 0) {
-				hash = key == null ? 0 : key.hashCode();
-			}
-			return (hash + offset) % capacity;
-		}
-	};
+	private ProbingHashFunction<K> probingHashFunction = (k, i, c) -> Math.abs((k.hashCode() + i) % c);
 	private int currentLoad;
 
 	@SuppressWarnings("unchecked")
@@ -98,7 +88,7 @@ public class LinearProbingHashTable<K, V> {
 	}
 
 	public V put(K key, V value) {
-		if (entries.length == size()) {
+		if (entries.length * 0.8 < size()) {
 			realloc(largerCapacity());
 		}
 		for (int i = 0; i < entries.length; ++i) {
@@ -120,9 +110,6 @@ public class LinearProbingHashTable<K, V> {
 	public V remove(Object key) {
 		@SuppressWarnings("unchecked")
 		K k = (K) Objects.requireNonNull(key);
-		if (size() - 1 < 0.1 * entries.length && entries.length > INITIAL_CAPACITY) {
-			realloc(smallerCapacity());
-		}
 		for (int i = 0; i < entries.length; ++i) {
 			int hash = hash(k, i);
 			if (entries[hash] == null) {
@@ -132,7 +119,11 @@ public class LinearProbingHashTable<K, V> {
 				V value = entries[hash].getValue();
 				entries[hash] = null;
 				currentLoad--;
-				fixTable(hash);
+				if (size() < 0.1 * entries.length && entries.length > INITIAL_CAPACITY) {
+					realloc(smallerCapacity()); // rehashing as a side effect
+				} else {
+					fixTable(hash);
+				}
 				return value;
 			}
 		}
@@ -168,7 +159,10 @@ public class LinearProbingHashTable<K, V> {
 	public Iterator<K> keysIterator() {
 		return new Iterator<K>() {
 
-			private int index = findNextIndex();
+			private int index = -1;
+			{
+				index = findNextIndex();
+			}
 
 			@Override
 			public boolean hasNext() {
@@ -183,7 +177,7 @@ public class LinearProbingHashTable<K, V> {
 			}
 
 			private int findNextIndex() {
-				for (int i = index; i < entries.length; ++i) {
+				for (int i = index + 1; i < entries.length; ++i) {
 					if (entries[i] != null) {
 						return i;
 					}
@@ -220,24 +214,19 @@ public class LinearProbingHashTable<K, V> {
 	}
 
 	private void fixTable(int start) {
-		int lastIndex = computeLastIndex(start);
-		for (int i = start; i != lastIndex; i = (i + 1) % entries.length) {
-			// note that this method is called after some entry was removed,
-			// therefore there is at least one empty slot and this method will eventually stop
+		int i = (start + 1) % entries.length;
+		do {
 			if (entries[i] == null) {
 				break;
 			}
-			if (hash(entries[i].getKey(), 0) == start) {
+			int hash = hash(entries[i].getKey(), 0);
+			if ((i < hash && hash <= start) || (i > start && (hash <= start || hash > i))) {
 				entries[start] = entries[i];
 				entries[i] = null;
 				start = i;
-				lastIndex = computeLastIndex(start);
 			}
-		}
-	}
-
-	private int computeLastIndex(int index) {
-		return index == 0 ? entries.length - 1 : index - 1;
+			i = (i + 1) % entries.length;
+		} while (i != start);
 	}
 
 	private int largerCapacity() {
@@ -255,7 +244,7 @@ public class LinearProbingHashTable<K, V> {
 	}
 
 	private int smallerCapacity() {
-		return Math.max(entries.length / 2, INITIAL_CAPACITY);
+		return Math.max(entries.length >>> 1, INITIAL_CAPACITY);
 	}
 
 	private int hash(K key, int offset, int capacity) {

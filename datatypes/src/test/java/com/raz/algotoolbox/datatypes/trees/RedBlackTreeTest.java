@@ -107,7 +107,7 @@ public class RedBlackTreeTest {
 				tree.delete(key);
 			}
 		}
-		assertTrue(keys.size() == tree.size());
+		assertEquals(keys.size(), tree.size());
 	}
 
 	private void testInsertDoesNotViolateTreeProperties(int bound) {

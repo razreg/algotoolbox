@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
+// TODO unit test
 public class HashSet<T> implements Set<T> {
 
 	private final transient HashMap<T, Object> map = new HashMap<>();

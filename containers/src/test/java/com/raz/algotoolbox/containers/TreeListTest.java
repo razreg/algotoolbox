@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 
 public class TreeListTest {
 
-	// TODO add unit tests
+	// TODO unit test
 
 	@Test
 	public void testGenericToArray() {
